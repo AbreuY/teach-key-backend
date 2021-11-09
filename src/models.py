@@ -15,6 +15,8 @@ class User(db.Model):
             # do not serialize the password, its a security breach
         }
 
+#Class Professor
+
 class Professor(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(100), unique=True)
@@ -24,12 +26,16 @@ class Professor(db.Model):
     password = db.Column(db.String(100))
     secondary_email = db.Column(db.String(100), unique=True, nullable=True)
     contact_methods = db.Column(db.String(100), nullable=True)
-    
+
+#Method to serialize object
+
     def serialize(self):
         return {
             "id":self.id,
             "user_name":self.user_name
         }
+
+#Method to create a new Professor
 
     @classmethod
     def create(cls, bubulala):
@@ -42,6 +48,20 @@ class Professor(db.Model):
             db.session.rollback()
             print(error)
             return None
+
+#Method to delete a Professor
+
+    def delete(self):
+        db.session.delete(self)
+        try:
+            db.session.commit()
+            return True
+        except Exception as error:
+            db.session.rollback()
+            return False
+
+
+#Class Student
 
 class Student(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -52,11 +72,17 @@ class Student(db.Model):
     country = db.Column(db.String(100))
     favorites  = db.relationship('Favorites', backref='student', uselist=True)
     
+
+#Method to serialize object
+
     def serialize(self):
         return {
             "id":self.id,
             "user_name":self.user_name
         }
+
+#Method to create a new Student
+
     @classmethod
     def create(cls, bubulala):
         try:
@@ -69,6 +95,20 @@ class Student(db.Model):
             print(error)
             return None
 
+#Method to delete a Student
+
+    def delete(self):
+        db.session.delete(self)
+        try:
+            db.session.commit()
+            return True
+        except Exception as error:
+            db.session.rollback()
+            return False
+
+
+
+#Class Services
 
 class Services(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -77,6 +117,8 @@ class Services(db.Model):
     price = db.Column(db.Integer)
     schedule = db.Column(db.Integer)
     image = db.Column(db.String(100))
+
+#Class Favorites
 
 class Favorites(db.Model):
     id = db.Column(db.Integer, primary_key=True)

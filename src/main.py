@@ -38,6 +38,9 @@ def sitemap():
 # endpoint para crear el registro de usuario usando metodo post
 # Debe recibir un objeto JSON con los datos de correo, 
 # nombre de usuario, fecha de nacimiento, contraseña, país.
+
+#Endpoint to get list of Professor registered
+
 @app.route('/professor', methods=['GET'])
 def get_professors():
     professors= Professor.query.all()
@@ -45,6 +48,8 @@ def get_professors():
     for professor in professors:
         response.append(professor.serialize())
     return jsonify(response), 200
+
+#Endpoint to get list of Students registered
 
 @app.route('/student', methods=['GET'])
 def get_student():
@@ -54,6 +59,7 @@ def get_student():
         response.append(student.serialize())
     return jsonify(response), 200
 
+#Endpoint to create an new Student
 
 @app.route('/register/student', methods=['POST'])
 def handle_register_student():
@@ -63,6 +69,8 @@ def handle_register_student():
     user = Student.create(body)
     return jsonify(user.serialize()), 201
 
+#Endpoint to create an new Professor
+
 @app.route('/register/professor', methods=['POST'])
 def handle_register_professor():
     if request.json is None:
@@ -71,6 +79,8 @@ def handle_register_professor():
     body = request.json
     user = Professor.create(body)
     return jsonify(user.serialize()), 201
+
+#Endpoint to login as Professor or Student
 
 @app.route('/login/<string:role>', methods=['POST'])
 def handle_login(role):
@@ -88,6 +98,30 @@ def handle_login(role):
     token = create_access_token(identity=user.id)
     return jsonify({"message": "Login successfully", 
     "token": token}), 200
+
+#Endpoint to delete an Student
+
+@app.route('/student/<int:student_id>', methods=['DELETE'])
+def handle_delete_student(student_id):
+    student = Student.query.filter_by(id = student_id).one_or_none()
+    if student is None:
+        return jsonify({"message": "not found"}), 404
+    deleted = student.delete()
+    if deleted == False:
+         return jsonify({"message":"Something happen try again"}), 500
+    return jsonify([]), 204
+
+#Endpoint to delete an Professor
+
+@app.route('/professor/<int:professor_id>', methods=['DELETE'])
+def handle_delete_professor(professor_id):
+    professor = Professor.query.filter_by(id = professor_id).one_or_none()
+    if professor is None:
+        return jsonify({"message": "not found"}), 404
+    deleted = professor.delete()
+    if deleted == False:
+         return jsonify({"message":"Something happen try again"}), 500
+    return jsonify([]), 204
 
 
     

@@ -38,6 +38,23 @@ def sitemap():
 # endpoint para crear el registro de usuario usando metodo post
 # Debe recibir un objeto JSON con los datos de correo, 
 # nombre de usuario, fecha de nacimiento, contraseña, país.
+@app.route('/professor', methods=['GET'])
+def get_professors():
+    professors= Professor.query.all()
+    response = []
+    for professor in professors:
+        response.append(professor.serialize())
+    return jsonify(response), 200
+
+@app.route('/student', methods=['GET'])
+def get_student():
+    students= Student.query.all()
+    response = []
+    for student in students:
+        response.append(student.serialize())
+    return jsonify(response), 200
+
+
 @app.route('/register/student', methods=['POST'])
 def handle_register_student():
     if request.json is None:

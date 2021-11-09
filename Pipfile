@@ -23,7 +23,7 @@ flask-jwt-extended = "*"
 python_version = "3"
 
 [scripts]
-start="flask run -p 3000 -h 0.0.0.0"
+start="flask run -p 3010 -h 0.0.0.0"
 init="flask db init"
 migrate="flask db migrate"
 upgrade="flask db upgrade"

@@ -118,6 +118,15 @@ class Services(db.Model):
     schedule = db.Column(db.Integer)
     image = db.Column(db.String(100))
 
+    def serialize(self):
+        return{
+            "title": self.title,
+            "description": self.description,
+            "price": self.price,
+            "schedule": self.schedule,
+            "image": self.image
+        }
+
 #Class Favorites
 
 class Favorites(db.Model):

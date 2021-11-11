@@ -9,7 +9,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import Professor, db, User, Student, Professor
+from models import Professor, Services, db, User, Student, Professor
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
 
 #from models import Person
@@ -123,7 +123,15 @@ def handle_delete_professor(professor_id):
          return jsonify({"message":"Something happen try again"}), 500
     return jsonify([]), 204
 
+#Endpoint to get services
 
+@app.route('/services', methods=['GET'])
+def handle_get_services():
+    services = Services.query.all()
+    response = []
+    for service in services:
+        response.append(service.serialize())
+    return jsonify(response), 200
     
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':

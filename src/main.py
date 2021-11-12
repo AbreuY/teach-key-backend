@@ -3,7 +3,8 @@ This module takes care of starting the API Server, Loading the DB and Adding the
 """
 from logging import raiseExceptions
 import os
-from flask import Flask, request, jsonify, url_for
+from flask import Flask, json, request, jsonify, flash, redirect, url_for
+from flask.wrappers import Response
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from flask_cors import CORS
@@ -11,8 +12,12 @@ from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import Professor, Services, db, User, Student, Professor
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
+from werkzeug.utils import secure_filename
 
 #from models import Person
+
+UPLOAD_FOLDER = '/static/img'
+ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -50,10 +55,9 @@ def get_professors():
     return jsonify(response), 200
 
 #Endpoint to get list of Students registered
-
 @app.route('/student', methods=['GET'])
 def get_student():
-    students= Student.query.all()
+    students = Student.query.all()
     response = []
     for student in students:
         response.append(student.serialize())
@@ -73,9 +77,10 @@ def handle_register_student():
 
 @app.route('/register/professor', methods=['POST'])
 def handle_register_professor():
+    print(request.json)
     if request.json is None:
         return jsonify({'message':'The request was invalid'}), 400
-
+    
     body = request.json
     user = Professor.create(body)
     return jsonify(user.serialize()), 201
@@ -132,7 +137,45 @@ def handle_get_services():
     for service in services:
         response.append(service.serialize())
     return jsonify(response), 200
-    
+
+#Endpoint to update & get user info by role and id
+@app.route('/<string:role>/<int:id>/profile', methods=['PUT', 'GET'])
+def handle_user_profile_edition(role, id):
+    if request.method == 'PUT':
+        user = None
+        if role == "student":
+            user = Student.query.filter_by(id=id).one_or_none()
+            if user is not None:
+                updated = user.update(request.json)
+                if updated:
+                    return jsonify({"message":"Profile updated!"}), 200
+                else:
+                    return jsonify({"message":"Something went wrong!"}), 500
+            return jsonify({"message":"User does not exist!"}), 404
+        else:
+            user = Professor.query.filter_by(id=id).one_or_none()
+            if user is not None:
+                updated = user.update(request.json)
+                if updated:
+                    return jsonify({"message":"Profile updated!"}), 200
+                else:
+                    return jsonify({"message":"Something went wrong!"}), 500
+            else:
+                return jsonify({"message":"User does not exist!"}), 404
+    elif request.method == 'GET':
+        if role == "student":
+            student = Student.query.filter_by(id=id).one_or_none()
+            if student is not None:
+                return jsonify(student.serialize()), 200
+            else:
+                return jsonify({"message":"User not found!"}), 404
+        else:
+            professor = Professor.query.filter_by(id=id).one_or_none()
+            if professor is not None:
+                return jsonify(professor.serialize()), 200
+            else: return jsonify({"message":"User not found!"}), 404
+
+
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))

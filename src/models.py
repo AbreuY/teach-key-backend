@@ -32,7 +32,12 @@ class Professor(db.Model):
     def serialize(self):
         return {
             "id":self.id,
-            "user_name":self.user_name
+            "email":self.email,
+            "user_name":self.user_name,
+            "dob":self.dob,
+            "country": self.country,
+            "secondary_email":self.secondary_email,
+            "contact_methods":self.contact_methods
         }
 
 #Method to create a new Professor
@@ -48,6 +53,30 @@ class Professor(db.Model):
             db.session.rollback()
             print(error)
             return None
+
+#Method to update a specific Professor
+    def update(self, user):
+        if "user_name" in user:
+            self.user_name = user["user_name"]
+        if "email" in user:
+            self.email = user["email"]
+        if "dob" in user:
+            self.dob = user["dob"]
+        if "country" in user:
+            self.country = user["country"]
+        if "password" in user:
+            self.password = user["password"]
+        if "secondary_email" in user:
+            self.secondary_email = user["secondary_email"]
+        if "contact_methods" in user:
+            self.contact_methods = user["contact_methods"]
+        try:
+            db.session.commit()
+            return True
+        except Exception as error:
+            db.session.rollback()
+            print(error)
+            return False
 
 #Method to delete a Professor
 
@@ -78,7 +107,11 @@ class Student(db.Model):
     def serialize(self):
         return {
             "id":self.id,
-            "user_name":self.user_name
+            "email":self.email,
+            "user_name":self.user_name,
+            "dob":self.dob,
+            "country":self.country,
+            "favorites":self.favorites
         }
 
 #Method to create a new Student
@@ -106,6 +139,36 @@ class Student(db.Model):
             db.session.rollback()
             return False
 
+#Method to update a Student profile by id
+    def update(self, user):
+        if "user_name" in user:
+            self.user_name = user["user_name"]
+        if "email" in user:
+            self.email = user["email"]
+        if "dob" in user:
+            self.dob = user["dob"]
+        if "country" in user:
+            self.country = user["country"]
+        if "password" in user:
+            self.password = user["password"]
+        try:
+            db.session.commit()
+            return True
+        except Exception as error:
+            db.session.rollback()
+            print(error)
+            return False
+
+#Method to delete a Professor
+
+    def delete(self):
+        db.session.delete(self)
+        try:
+            db.session.commit()
+            return True
+        except Exception as error:
+            db.session.rollback()
+            return False
 
 
 #Class Services
@@ -126,7 +189,21 @@ class Services(db.Model):
             "schedule": self.schedule,
             "image": self.image
         }
+    
+    #Method to create service
+    @classmethod
+    def create(cls, bubulala):
+        try:
+            new_user = cls(**bubulala)
+            db.session.add(new_user)
+            db.session.commit()
+            return new_user
+        except Exception as error:
+            db.session.rollback()
+            print(error)
+            return None
 
+    
 #Class Favorites
 
 class Favorites(db.Model):

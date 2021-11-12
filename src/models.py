@@ -192,12 +192,12 @@ class Services(db.Model):
     
     #Method to create service
     @classmethod
-    def create(cls, bubulala):
+    def create(cls, svc):
         try:
-            new_user = cls(**bubulala)
-            db.session.add(new_user)
+            new_svc = cls(**svc)
+            db.session.add(new_svc)
             db.session.commit()
-            return new_user
+            return new_svc
         except Exception as error:
             db.session.rollback()
             print(error)

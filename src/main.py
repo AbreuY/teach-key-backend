@@ -130,13 +130,20 @@ def handle_delete_professor(professor_id):
 
 #Endpoint to get services
 
-@app.route('/services', methods=['GET'])
+@app.route('/services', methods=['GET', ['POST']])
 def handle_get_services():
-    services = Services.query.all()
-    response = []
-    for service in services:
-        response.append(service.serialize())
-    return jsonify(response), 200
+    if request.method == 'GET':
+        services = Services.query.all()
+        response = []
+        for service in services:
+            response.append(service.serialize())
+        return jsonify(response), 200
+    
+    if request.json is None:
+        return jsonify({'message':'The request was invalid'}), 400
+    body = request.json
+    svc = Services.create(body)
+    return jsonify(svc.serialize()), 201
 
 #Endpoint to update & get user info by role and id
 @app.route('/<string:role>/<int:id>/profile', methods=['PUT', 'GET'])

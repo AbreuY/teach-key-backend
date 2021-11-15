@@ -26,6 +26,7 @@ class Professor(db.Model):
     password = db.Column(db.String(100))
     secondary_email = db.Column(db.String(100), unique=True, nullable=True)
     contact_methods = db.Column(db.String(100), nullable=True)
+    services  = db.relationship('Services', backref='professor', uselist=True)
 
 #Method to serialize object
 
@@ -37,7 +38,8 @@ class Professor(db.Model):
             "dob":self.dob,
             "country": self.country,
             "secondary_email":self.secondary_email,
-            "contact_methods":self.contact_methods
+            "contact_methods":self.contact_methods,
+            "services":[service.serialize() for service in self.services]  
         }
 
 #Method to create a new Professor
@@ -54,7 +56,7 @@ class Professor(db.Model):
             print(error)
             return None
 
-#Method to update a specific Professor
+#Method to update a Professor by id
     def update(self, user):
         if "user_name" in user:
             self.user_name = user["user_name"]
@@ -179,10 +181,17 @@ class Services(db.Model):
     description = db.Column(db.String(300))
     price = db.Column(db.Integer)
     schedule = db.Column(db.Integer)
-    image = db.Column(db.String(100))
-
+    image = db.Column(db.String(250))
+    professor_id = db.Column(db.Integer,db.ForeignKey('professor.id'), nullable=False)
+    # __table_args__ = (db.UniqueConstraint(
+    #     'professor_id',
+    #     'title',
+    #     name='unique_svc_for_professor'
+    # ),)
     def serialize(self):
         return{
+            "id":self.id,
+            "professor_id":self.professor_id,
             "title": self.title,
             "description": self.description,
             "price": self.price,
@@ -203,6 +212,37 @@ class Services(db.Model):
             print(error)
             return None
 
+    #Method to delete a Service
+
+    def delete(self):
+        db.session.delete(self)
+        try:
+            db.session.commit()
+            return True
+        except Exception as error:
+            db.session.rollback()
+            return False
+
+    #Method to update a specific Professor
+    def update(self, svc):
+        if "title" in svc:
+            self.title = svc["title"]
+        if "description" in svc:
+            self.description = svc["description"]
+        if "price" in svc:
+            self.dob = svc["price"]
+        if "schedule" in svc:
+            self.schedule = svc["schedule"]
+        if "image" in svc:
+            self.image = svc["image"]
+
+        try:
+            db.session.commit()
+            return True
+        except Exception as error:
+            db.session.rollback()
+            print(error)
+            return False
     
 #Class Favorites
 

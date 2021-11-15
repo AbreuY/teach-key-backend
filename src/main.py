@@ -3,7 +3,7 @@ This module takes care of starting the API Server, Loading the DB and Adding the
 """
 from logging import raiseExceptions
 import os
-from flask import Flask, json, request, jsonify, flash, redirect, url_for
+from flask import Flask, request, jsonify
 from flask.wrappers import Response
 from flask_migrate import Migrate
 from flask_swagger import swagger
@@ -12,12 +12,9 @@ from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import Professor, Services, db, User, Student, Professor
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
-from werkzeug.utils import secure_filename
+
 
 #from models import Person
-
-UPLOAD_FOLDER = '/static/img'
-ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif'}
 
 app = Flask(__name__)
 app.url_map.strict_slashes = False
@@ -129,21 +126,51 @@ def handle_delete_professor(professor_id):
     return jsonify([]), 204
 
 #Endpoint to get services
-
-@app.route('/services', methods=['GET', ['POST']])
-def handle_get_services():
+@app.route('/services', methods=['GET', 'POST'])
+def handle_services():
     if request.method == 'GET':
         services = Services.query.all()
         response = []
         for service in services:
             response.append(service.serialize())
+        # if response == []:
+        #     return jsonify([]), 404
         return jsonify(response), 200
-    
-    if request.json is None:
-        return jsonify({'message':'The request was invalid'}), 400
-    body = request.json
-    svc = Services.create(body)
-    return jsonify(svc.serialize()), 201
+    elif request.method == 'POST':
+        if request.json is None:
+            return jsonify({'message':'The request was invalid'}), 400
+        body = request.json
+        svc = Services.create(body)
+        return jsonify(svc.serialize()), 201
+    elif request.method == 'PUT':
+        return """ To Do Update Service """
+
+#Endpoint to delete a service by id
+@app.route('/services/<int:id>', methods=['DELETE', 'PUT', 'GET'])
+def handle_one_service(id):
+    svc = Services.query.filter_by(id=id).one_or_none()
+    if request.method == 'DELETE':
+        if svc is None:
+            return jsonify({"message": "Service not found"}), 404
+        deleted = svc.delete()
+        if deleted == False:
+            return jsonify({"message":"Something happen try again!"}), 500
+        return jsonify({"message":"Service deleted!"}), 204
+    elif request.method == 'GET':
+        if svc is None:
+            return jsonify({"message": "Service not found"}), 404
+        return jsonify(svc.serialize()), 200
+    elif request.method == 'PUT':
+        if svc is not None:
+             updated = svc.update(request.json)
+             if updated:
+                 return jsonify({"message":"Service updated!"}), 200
+             else:
+                 return jsonify({"message":"Something went wrong!"}), 500
+        return jsonify({"message":"Service does not exist!"}), 404
+        
+        
+        
 
 #Endpoint to update & get user info by role and id
 @app.route('/<string:role>/<int:id>/profile', methods=['PUT', 'GET'])
@@ -179,8 +206,12 @@ def handle_user_profile_edition(role, id):
         else:
             professor = Professor.query.filter_by(id=id).one_or_none()
             if professor is not None:
+                print(professor.serialize())
+                print(professor.services)
                 return jsonify(professor.serialize()), 200
             else: return jsonify({"message":"User not found!"}), 404
+               
+                
 
 
 # this only runs if `$ python src/main.py` is executed

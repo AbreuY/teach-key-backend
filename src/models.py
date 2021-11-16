@@ -230,7 +230,7 @@ class Services(db.Model):
         if "description" in svc:
             self.description = svc["description"]
         if "price" in svc:
-            self.dob = svc["price"]
+            self.price = svc["price"]
         if "schedule" in svc:
             self.schedule = svc["schedule"]
         if "image" in svc:

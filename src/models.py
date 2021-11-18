@@ -25,7 +25,11 @@ class Professor(db.Model):
     country = db.Column(db.String(100))
     password = db.Column(db.String(100))
     secondary_email = db.Column(db.String(100), unique=True, nullable=True)
-    contact_methods = db.Column(db.String(100), nullable=True)
+    facebook = db.Column(db.String(250), nullable=True)
+    twitter = db.Column(db.String(250), nullable=True)
+    instagram = db.Column(db.String(250), nullable=True)
+    whatsapp = db.Column(db.String(250), nullable=True)
+    img_profile = db.Column(db.String(200), nullable=True)
     services  = db.relationship('Services', backref='professor', uselist=True)
 
 #Method to serialize object
@@ -38,7 +42,11 @@ class Professor(db.Model):
             "dob":self.dob,
             "country": self.country,
             "secondary_email":self.secondary_email,
-            "contact_methods":self.contact_methods,
+            "facebook":self.facebook,
+            "twitter":self.twitter,
+            "instagram":self.instagram,
+            "whatsapp":self.whatsapp,
+            "img_profile":self.img_profile,
             "services":[service.serialize() for service in self.services]  
         }
 
@@ -70,8 +78,17 @@ class Professor(db.Model):
             self.password = user["password"]
         if "secondary_email" in user:
             self.secondary_email = user["secondary_email"]
-        if "contact_methods" in user:
-            self.contact_methods = user["contact_methods"]
+        if "facebook" in user:
+            self.facebook = user["facebook"]
+        if "twitter" in user:
+            self.twitter = user["twitter"]
+        if "instagram" in user:
+            self.instagram = user["instagram"]
+        if "whatsapp" in user:
+            self.whatsapp = user["whatsapp"]
+        if "img_profile" in user:
+            self.img_profile = user['img_profile']
+
         try:
             db.session.commit()
             return True
@@ -101,6 +118,7 @@ class Student(db.Model):
     dob = db.Column(db.String(100))
     password = db.Column(db.String(100))
     country = db.Column(db.String(100))
+    img_profile = db.Column(db.String(200), nullable=True)
     favorites  = db.relationship('Favorites', backref='student', uselist=True)
     
 
@@ -113,6 +131,7 @@ class Student(db.Model):
             "user_name":self.user_name,
             "dob":self.dob,
             "country":self.country,
+            "img_profile":self.img_profile,
             "favorites":self.favorites
         }
 
@@ -151,6 +170,8 @@ class Student(db.Model):
             self.dob = user["dob"]
         if "country" in user:
             self.country = user["country"]
+        if "img_profile" in user:
+            self.img_profile = user['img_profile']
         if "password" in user:
             self.password = user["password"]
         try:

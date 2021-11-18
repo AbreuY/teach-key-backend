@@ -132,6 +132,13 @@ def handle_delete_professor(professor_id):
 @app.route('/services', methods=['GET', 'POST'])
 def handle_services():
     if request.method == 'GET':
+        if request.args.get('limit'):
+            limit = request.args.get('limit')
+            services = Services.query.limit(limit)
+            response = []
+            for service in services:
+                response.append(service.serialize())
+            return jsonify(response), 200
         services = Services.query.all()
         response = []
         for service in services:

@@ -2,6 +2,8 @@
 This module takes care of starting the API Server, Loading the DB and Adding the endpoints
 """
 from logging import raiseExceptions
+
+from datetime import datetime as dt, timedelta
 import os
 from flask import Flask, request, jsonify
 from flask.wrappers import Response
@@ -21,6 +23,7 @@ app.url_map.strict_slashes = False
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DB_CONNECTION_STRING')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = os.environ.get('FLASK_APP_KEY')
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(seconds=1800)
 jwt = JWTManager(app)
 MIGRATE = Migrate(app, db)
 db.init_app(app)
@@ -45,6 +48,13 @@ def sitemap():
 
 @app.route('/professor', methods=['GET'])
 def get_professors():
+    if request.args.get('limit'):
+            limit = request.args.get('limit')
+            professors = Professor.query.limit(limit)
+            response = []
+            for professor in professors:
+                response.append(professor.serialize())
+            return jsonify(response), 200
     professors= Professor.query.all()
     response = []
     for professor in professors:
@@ -230,7 +240,7 @@ def handle_user_profile_edition(role, id):
 @app.route('/filter/services', methods=['POST'])
 def handle_filter_services():
     title=request.json.get("title", None)
-    services = Services.query.filter(Services.title.like("%"+title+"%")).all()
+    services = Services.query.filter(Services.title.ilike("%"+title+"%")).all()
     response= []
     for service in services:
         response.append(service.serialize())

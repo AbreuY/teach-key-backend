@@ -98,8 +98,11 @@ def handle_login(role):
         return ({"msg": "Something went wrong, please try again"}), 401
     
     token = create_access_token(identity=user.id)
-    return jsonify({"message": "Login successfully", 
-    "token": token}), 200
+    user = {"message": "LoginSuccesfully",
+    "token":token,
+    "id":user.id,
+    "role":role}
+    return jsonify(user), 200
 
 #Endpoint to delete an Student
 
@@ -129,6 +132,13 @@ def handle_delete_professor(professor_id):
 @app.route('/services', methods=['GET', 'POST'])
 def handle_services():
     if request.method == 'GET':
+        if request.args.get('limit'):
+            limit = request.args.get('limit')
+            services = Services.query.limit(limit)
+            response = []
+            for service in services:
+                response.append(service.serialize())
+            return jsonify(response), 200
         services = Services.query.all()
         response = []
         for service in services:
@@ -142,10 +152,8 @@ def handle_services():
         body = request.json
         svc = Services.create(body)
         return jsonify(svc.serialize()), 201
-    elif request.method == 'PUT':
-        return """ To Do Update Service """
 
-#Endpoint to delete a service by id
+#Endpoint to delete, update and get a service by id
 @app.route('/services/<int:id>', methods=['DELETE', 'PUT', 'GET'])
 def handle_one_service(id):
     svc = Services.query.filter_by(id=id).one_or_none()
@@ -174,11 +182,14 @@ def handle_one_service(id):
 
 #Endpoint to update & get user info by role and id
 @app.route('/<string:role>/<int:id>/profile', methods=['PUT', 'GET'])
+@jwt_required()
 def handle_user_profile_edition(role, id):
+    current_user = get_jwt_identity()
+    print("This is the current user " + str(current_user))
     if request.method == 'PUT':
         user = None
         if role == "student":
-            user = Student.query.filter_by(id=id).one_or_none()
+            user = Student.query.filter_by(id=current_user).one_or_none()
             if user is not None:
                 updated = user.update(request.json)
                 if updated:
@@ -187,7 +198,7 @@ def handle_user_profile_edition(role, id):
                     return jsonify({"message":"Something went wrong!"}), 500
             return jsonify({"message":"User does not exist!"}), 404
         else:
-            user = Professor.query.filter_by(id=id).one_or_none()
+            user = Professor.query.filter_by(id=current_user).one_or_none()
             if user is not None:
                 updated = user.update(request.json)
                 if updated:
@@ -198,19 +209,35 @@ def handle_user_profile_edition(role, id):
                 return jsonify({"message":"User does not exist!"}), 404
     elif request.method == 'GET':
         if role == "student":
-            student = Student.query.filter_by(id=id).one_or_none()
+            student = Student.query.filter_by(id=current_user).one_or_none()
             if student is not None:
                 return jsonify(student.serialize()), 200
             else:
                 return jsonify({"message":"User not found!"}), 404
         else:
-            professor = Professor.query.filter_by(id=id).one_or_none()
+            professor = Professor.query.filter_by(id=current_user).one_or_none()
             if professor is not None:
-                print(professor.serialize())
-                print(professor.services)
                 return jsonify(professor.serialize()), 200
             else: return jsonify({"message":"User not found!"}), 404
                
+#endpoint to get specific service
+
+
+@app.route('/filter/services', methods=['POST'])
+def handle_filter_services():
+    title=request.json.get("title", None)
+    services = Services.query.filter(Services.title.like("%"+title+"%")).all()
+    response= []
+    for service in services:
+        response.append(service.serialize())
+    print(response)
+    if services is not None:
+        return jsonify(response),200
+    return jsonify({"message" : "not found"}), 404
+
+
+        
+
                 
 
 

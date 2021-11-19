@@ -208,6 +208,12 @@ def handle_user_profile_edition(role, id):
             else:
                 return jsonify({"message":"User does not exist!"}), 404
     elif request.method == 'GET':
+        if request.args.get('uid'):
+            uid = request.args.get('uid')
+            professor = Professor.query.filter_by(id=uid).one_or_none()
+            if professor is not None:
+                return jsonify(professor.serialize()), 200
+            else: return jsonify({"message":"User not found!"}), 404
         if role == "student":
             student = Student.query.filter_by(id=current_user).one_or_none()
             if student is not None:
@@ -215,35 +221,11 @@ def handle_user_profile_edition(role, id):
             else:
                 return jsonify({"message":"User not found!"}), 404
         else:
-            if request.args.get("uid"):
-                uid = request.args.get('uid')
-                professor = Professor.query.filter_by(id=uid).one_or_none()
-            if professor is not None:
-                return jsonify(professor.serialize()), 200
-                
             professor = Professor.query.filter_by(id=current_user).one_or_none()
             if professor is not None:
                 return jsonify(professor.serialize()), 200
             else: return jsonify({"message":"User not found!"}), 404
                
-#endpoint to get specific service
-
-
-@app.route('/filter/services', methods=['POST'])
-def handle_filter_services():
-    title=request.json.get("title", None)
-    services = Services.query.filter(Services.title.like("%"+title+"%")).all()
-    response= []
-    for service in services:
-        response.append(service.serialize())
-    print(response)
-    if services is not None:
-        return jsonify(response),200
-    return jsonify({"message" : "not found"}), 404
-
-
-        
-
                 
 
 

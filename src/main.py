@@ -14,6 +14,7 @@ from utils import APIException, generate_sitemap
 from admin import setup_admin
 from models import Professor, Services, db, User, Student, Professor
 from flask_jwt_extended import JWTManager, create_access_token, get_jwt_identity, jwt_required
+from sqlalchemy.sql.functions import ReturnTypeFromArgs
 
 
 #from models import Person
@@ -29,6 +30,9 @@ MIGRATE = Migrate(app, db)
 db.init_app(app)
 CORS(app)
 setup_admin(app)
+ 
+class unaccent(ReturnTypeFromArgs):
+    pass
 
 # Handle/serialize errors like a JSON object
 @app.errorhandler(APIException)
@@ -240,7 +244,7 @@ def handle_user_profile_edition(role, id):
 @app.route('/filter/services', methods=['POST'])
 def handle_filter_services():
     title=request.json.get("title", None)
-    services = Services.query.filter(Services.title.ilike("%"+title+"%")).all()
+    services = Services.query.filter((unaccent(Services.title).ilike("%"+title+"%"))).all()
     response= []
     for service in services:
         response.append(service.serialize())

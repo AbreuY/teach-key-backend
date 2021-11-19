@@ -227,8 +227,17 @@ def handle_user_profile_edition(role, id):
             else: return jsonify({"message":"User not found!"}), 404
                
                 
-
-
+@app.route('/filter/services', methods=['POST'])
+def handle_filter_services():
+    title=request.json.get("title", None)
+    services = Services.query.filter(Services.title.like("%"+title+"%")).all()
+    response= []
+    for service in services:
+        response.append(service.serialize())
+    print(response)
+    if services is not None:
+        return jsonify(response),200
+    return jsonify({"message" : "not found"}), 404
 # this only runs if `$ python src/main.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))

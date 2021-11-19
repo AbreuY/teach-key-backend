@@ -215,6 +215,12 @@ def handle_user_profile_edition(role, id):
             else:
                 return jsonify({"message":"User not found!"}), 404
         else:
+            if request.args.get("uid"):
+                uid = request.args.get('uid')
+                professor = Professor.query.filter_by(id=uid).one_or_none()
+            if professor is not None:
+                return jsonify(professor.serialize()), 200
+                
             professor = Professor.query.filter_by(id=current_user).one_or_none()
             if professor is not None:
                 return jsonify(professor.serialize()), 200
